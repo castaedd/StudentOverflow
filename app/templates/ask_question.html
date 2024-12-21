@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Hacer una pregunta</h2>
+<form id="questionForm">
+    <div class="form-group">
+        <label for="title">Título de la pregunta</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="form-group">
+        <label for="content">Contenido de la pregunta</label>
+        <textarea class="form-control" id="content" name="content" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Publicar pregunta</button>
+</form>
+
+<script>
+document.getElementById('questionForm').addEventListener('submit', function(event) {
+    event.preventDefault();  // Evita que el formulario se envíe de manera convencional
+
+    // Obtén el token JWT almacenado (suponiendo que esté en el localStorage)
+    const token = localStorage.getItem('access_token');  // Asegúrate de que el token esté allí
+
+    if (!token) {
+        alert('No estás autenticado');
+        return;
+    }
+
+    // Obtén los datos del formulario
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+
+    // Enviar la solicitud AJAX con el token JWT en el encabezado
+    fetch('{{ url_for("main.ask_question") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token  // Agregar el token JWT
+        },
+        body: JSON.stringify({
+            title: title,
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Question asked') {
+            alert('Pregunta publicada exitosamente');
+        } else {
+            alert('Hubo un problema al publicar la pregunta');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al enviar la pregunta');
+    });
+});
+</script>
+{% endblock %}
